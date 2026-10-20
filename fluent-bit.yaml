@@ -1,0 +1,47 @@
+service:
+  flush: 1
+  daemon: off
+  log_level: info
+  parsers_file: /fluent-bit/etc/parsers.conf
+
+pipeline:
+  inputs:
+    - name: syslog
+      tag: syslog.network.udp
+      mode: udp
+      listen: 0.0.0.0
+      port: ${SYSLOG_PORT}
+      parser: syslog-any
+      source_address_key: host_ip
+
+    - name: syslog
+      tag: syslog.network.tcp
+      mode: tcp
+      listen: 0.0.0.0
+      port: ${SYSLOG_PORT}
+      parser: syslog-any
+      source_address_key: host_ip
+
+  filters:
+    - name: lua
+      match: syslog.network.*
+      script: /fluent-bit/config/syslog-to-la.lua
+      call: transform_syslog
+
+  outputs:
+    - name: azure_kusto
+      match: syslog.network.*
+      tenant_id: ${AZURE_TENANT_ID}
+      client_id: ${AZURE_CLIENT_ID}
+      client_secret: ${AZURE_CLIENT_SECRET}
+      ingestion_endpoint: ${ADX_DATA_INGESTION_URI}
+      database_name: ${ADX_DATABASE_NAME}
+      table_name: ${ADX_TABLE_NAME}
+      ingestion_mapping_reference: ${ADX_MAPPING_NAME}
+      compression_enabled: true
+      ingestion_endpoint_connect_timeout: 30
+
+parsers:
+  - name: syslog-any
+    format: regex
+    regex: '^\<(?<pri>[0-9]{1,5})\>(?:1 (?<time>[^ ]+) (?<host>[^ ]+) (?<ident>[^ ]+) (?<pid>[-0-9]+) (?<msgid>[^ ]+) (?<extradata>(\[(.*?)\]|-)) *(?<message>.*)|(?<time>[^ ]* {1,2}[^ ]* [^ ]*(?: [0-9]{4})?) (?<host>[^ ]*) *(?<ident>[a-zA-Z0-9_\/\.\-]*)?(?:\[(?<pid>[0-9]+)\])?(?:[^\:]*\:)? *(?<message>.*))$'
