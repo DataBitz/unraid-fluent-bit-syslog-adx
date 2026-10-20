@@ -16,17 +16,31 @@ function transform_syslog(tag, timestamp, record)
     local pri = tonumber(record["pri"]) or 13
     local fac_num = math.floor(pri / 8)
     local sev_num = pri % 8
+
+    -- Clean HostIP if formatted as udp://ip:port or tcp://ip:port
+    local host_ip = record["host_ip"] or ""
+    host_ip = host_ip:gsub("^%a+://", ""):gsub(":%d+$", "")
+
     local host = record["host"] or record["hostname"] or "unknown"
+    -- Guard: If host was mistakenly parsed as a 4-digit year (e.g. from syslog timestamp with year) or nil/empty
+    if host == "-" or host == "" or host:match("^%d%d%d%d$") then
+        host = (host_ip ~= "") and host_ip or "unknown"
+    end
+
     local ident = record["ident"] or record["appname"] or record["app_name"] or ""
+    if ident == "-" then
+        ident = ""
+    end
+
     local pid = tonumber(record["pid"] or record["procid"])
-    local msg = record["message"] or record["msg"] or ""
+    local msg = record["message"] or record["msg"] or record["log"] or ""
 
     local new_record = {
         SourceSystem      = "FluentBit",
         CollectorHostName = os.getenv("HOSTNAME") or "fluentbit-forwarder",
         Computer          = host,
         HostName          = host,
-        HostIP            = record["host_ip"] or "",
+        HostIP            = host_ip,
         Facility          = facilities[fac_num] or tostring(fac_num),
         SeverityLevel     = severities[sev_num] or tostring(sev_num),
         ProcessName       = ident,

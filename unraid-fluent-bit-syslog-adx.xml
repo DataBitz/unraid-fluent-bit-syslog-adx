@@ -14,7 +14,7 @@
   <Icon>https://avatars.githubusercontent.com/u/859518</Icon>
   <Requires>Before deploying, ensure you have completed the following prerequisites:
 
-1. Azure Entra ID &amp; ADX Setup: Configure your Service Principal, ADX cluster, target database, Syslog table, and JSON mapping. Grant the Service Principal 'ingestors' role permissions.
+1. Azure Entra ID &amp; ADX Setup: Configure your Service Principal, ADX cluster, target database, Syslog table, JSON mapping, and 30-day retention policy (recommended for Free Tier). Grant the Service Principal 'ingestors' role permissions.
 2. Configuration Files: Manually copy 'fluent-bit.yaml' and 'syslog-to-la.lua' into your appdata folder (/mnt/user/appdata/fluent-bit) before launching the container for the first time.
 
 Sample files and step-by-step guidance are available in the GitHub repository:

@@ -1,6 +1,6 @@
 # Fluent Bit Syslog Forwarder to Azure Data Explorer (Unraid Template)
 
-An Unraid application template for **Fluent Bit** (`fluent/fluent-bit:latest`) configured to ingest network Syslog traffic over both **UDP and TCP** on port 514, parse and map fields to match the Log Analytics schema using Lua, and stream data directly into **Azure Data Explorer (ADX)** / Kusto.
+An Unraid application template for **Fluent Bit** (`fluent/fluent-bit:latest`) configured to ingest network Syslog traffic over both **UDP and TCP** on port 514, supporting both **RFC 3164 (BSD legacy)** and **RFC 5424 (modern IETF)** formats. Parses and maps fields to match the Log Analytics schema using Lua, and streams data directly into **Azure Data Explorer (ADX)** / Kusto.
 
 ---
 
@@ -99,6 +99,13 @@ Replace `<AZURE_CLIENT_ID>` and `<AZURE_TENANT_ID>` with your credentials captur
 .add database MyDatabase ingestors ('aadapp=<AZURE_CLIENT_ID>;<AZURE_TENANT_ID>') 'Fluent Bit Syslog Ingestor App'
 ```
 
+#### 4. Configure 30-Day Retention Policy (Recommended for Free Tier)
+By default, Azure Data Explorer sets retention to 100 years. If using the **ADX Free Tier (10 GB storage limit)**, you should configure a 30-day retention policy so expired logs are automatically and permanently purged to prevent hitting your quota:
+```kusto
+.alter-merge table Syslog policy retention softdelete = 30d recoverability = disabled
+```
+*(Setting `recoverability = disabled` ensures expired data is immediately purged rather than kept in a 14-day soft-delete buffer that counts against your 10 GB quota).*
+
 ---
 
 ## Step 3: Prepare Host Configuration Files
@@ -155,14 +162,18 @@ Ensure you have all required parameters ready before launching the Unraid templa
 ## Step 6: Verification & Testing
 
 ### 1. Send Test Packets from Unraid
-Test both UDP and TCP syslog ingestion directly from the Unraid terminal:
+Test both RFC 3164 and RFC 5424 syslog ingestion over UDP and TCP:
 
 ```bash
-# Test UDP Ingestion
-echo "<13>Oct 20 00:00:00 unraid testapp[1234]: Fluent Bit ADX test packet via UDP" | nc -u -w1 127.0.0.1 514
+# Test RFC 3164 (Legacy BSD syslog) via UDP
+echo "<13>Oct 20 00:00:00 unraid testapp[1234]: Fluent Bit ADX test packet via UDP (RFC 3164)" | nc -u -w1 127.0.0.1 514
 
-# Test TCP Ingestion
-echo "<13>Oct 20 00:00:00 unraid testapp[1234]: Fluent Bit ADX test packet via TCP" | nc -w1 127.0.0.1 514
+# Test RFC 5424 (Modern IETF syslog) via TCP
+echo "<13>1 2026-10-20T00:00:00.000Z unraid testapp 1234 - - Fluent Bit ADX test packet via TCP (RFC 5424)" | nc -w1 127.0.0.1 514
+
+# Alternatively using the standard logger command:
+logger -n 127.0.0.1 -P 514 -d -t testapp "Fluent Bit test RFC 3164 via UDP"
+logger -n 127.0.0.1 -P 514 -T --rfc5424 -t testapp "Fluent Bit test RFC 5424 via TCP"
 ```
 
 ### 2. Verify Container Execution
