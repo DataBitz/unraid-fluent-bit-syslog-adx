@@ -8,7 +8,7 @@
   <Support>https://github.com/DataBitz/unraid-fluent-bit-syslog-adx/issues</Support>
   <Project>https://fluentbit.io/</Project>
   <ReadMe>https://raw.githubusercontent.com/DataBitz/unraid-fluent-bit-syslog-adx/main/README.md</ReadMe>
-  <Overview>Fluent Bit syslog forwarder configured with Lua parsing and native Azure Data Explorer (ADX) ingestion. Listens for both UDP and TCP syslog traffic.</Overview>
+  <Overview>Fluent Bit syslog forwarder (v1.0.0) configured with Lua parsing and native Azure Data Explorer (ADX) ingestion. Listens for both UDP and TCP syslog traffic.</Overview>
   <Category>Network:Management Security:Status Tools:</Category>
   <TemplateURL>https://raw.githubusercontent.com/DataBitz/unraid-fluent-bit-syslog-adx/main/unraid-fluent-bit-syslog-adx.xml</TemplateURL>
   <Icon>https://avatars.githubusercontent.com/u/859518</Icon>
