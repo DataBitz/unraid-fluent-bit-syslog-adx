@@ -1,4 +1,4 @@
-# Fluent Bit Syslog Forwarder to Azure Data Explorer (Unraid Template) `v1.0.0`
+# Fluent Bit Syslog Forwarder to Azure Data Explorer (Unraid Template) `v1.0.1`
 
 An Unraid application template for **Fluent Bit** (`fluent/fluent-bit:latest`) configured to ingest network Syslog traffic over both **UDP and TCP** on port 514, supporting both **RFC 3164 (BSD legacy)** and **RFC 5424 (modern IETF)** formats. Parses and maps fields to match the Log Analytics schema using Lua, and streams data directly into **Azure Data Explorer (ADX)** / Kusto.
 
